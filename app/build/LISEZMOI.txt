@@ -1,0 +1,28 @@
+Taiseux — plus-values sur actifs numériques (formulaire 2086), hors ligne
+=========================================================================
+
+Taiseux calcule vos plus-values de cession d'actifs numériques (article 150 VH bis du CGI) et prépare les montants
+à recopier sur le formulaire 2086 et la déclaration de revenus. Il ne se connecte jamais à Internet : rien de ce que
+vous saisissez ou importez ne quitte votre ordinateur.
+
+Ce n'est pas un conseil fiscal : vous restez responsable de votre déclaration.
+
+Vérifier ce que vous avez téléchargé
+------------------------------------
+Chaque fichier de cette version est publié avec son empreinte SHA-256 (fichier SHA256SUMS) et une preuve
+d'horodatage OpenTimestamps (fichiers .ots). Comparez l'empreinte de votre téléchargement avec celle du site :
+  macOS / Linux :  shasum -a 256 <fichier>
+  Windows       :  Get-FileHash <fichier> -Algorithm SHA256
+
+Lancer
+------
+  macOS    : ouvrez Taiseux.app (au premier lancement : clic droit, puis Ouvrir).
+  Windows  : lancez taiseux.exe (garder WebView2Loader.dll dans le même dossier).
+  Linux    : rendez Taiseux.AppImage exécutable (chmod +x) puis lancez-le, ou installez le paquet .deb.
+
+Code source et licence
+----------------------
+Taiseux est open source, sous licence MIT (fichier LICENSE joint). Son code est public :
+  https://github.com/gill3s/taiseux
+
+Soutien : https://taiseux.toolguild.online

@@ -1,0 +1,7 @@
+# Compilation croisée Windows (x86_64-pc-windows-gnu, mingw) de Taiseux depuis Linux : exécutable + installeur NSIS.
+# La cible gnu évite le SDK de Microsoft (pas de licence MSVC à accepter). Utilisé par build/windows.sh.
+FROM docker.io/library/rust:1-bookworm
+RUN apt-get update && apt-get install -y --no-install-recommends gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64 nsis \
+  && rm -rf /var/lib/apt/lists/*
+RUN rustup target add x86_64-pc-windows-gnu && cargo install tauri-cli --version "^2" --locked
+WORKDIR /src

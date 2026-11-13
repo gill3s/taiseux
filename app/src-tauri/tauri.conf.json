@@ -1,0 +1,37 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Taiseux",
+  "version": "0.3.0",
+  "identifier": "online.toolguild.taiseux",
+  "build": {
+    "frontendDist": "../ui"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Taiseux",
+        "width": 1180,
+        "height": 820,
+        "minWidth": 760,
+        "minHeight": 560,
+        "incognito": true,
+        "dragDropEnabled": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src ipc: http://ipc.localhost; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'",
+      "freezePrototype": true
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "category": "Finance",
+    "copyright": "© 2026 ToolGuild",
+    "shortDescription": "Plus-values crypto (2086), hors ligne",
+    "longDescription": "Taiseux calcule les plus-values de cession d'actifs numériques (article 150 VH bis du CGI) et prépare le formulaire 2086, sans jamais se connecter à Internet.",
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"]
+  }
+}

@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Taiseux</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9"/><circle cx="11" cy="13" r="2.1"/><circle cx="21" cy="13" r="2.1"/><path d="M10 21.5h12"/></svg>
+      <span>Taiseux</span>
+    </div>
+    <nav class="nav" aria-label="Sections">
+      <button type="button" data-vue="operations" class="actif">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span>Opérations</span></button>
+      <button type="button" data-vue="declaration">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 14.5l2 2 4-4"/></svg><span>Déclaration</span></button>
+      <button type="button" data-vue="comptes">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg><span>Comptes à l'étranger</span></button>
+      <button type="button" data-vue="cours">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5h16M6 15l4-5 3 3 5-7"/></svg><span>Cours</span>
+        <span class="pastille" id="pastille-cours" hidden></span></button>
+      <button type="button" data-vue="aide">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.6 2.3c-.8.5-1.2 1-1.2 1.9M12 17h.01"/></svg><span>Aide</span></button>
+    </nav>
+
+    <div class="coffre">
+      <div class="etat" id="etat" aria-live="polite"></div>
+      <button type="button" id="b-enregistrer" title="Raccourci : Cmd ou Ctrl + S">Enregistrer dans un coffre…</button>
+      <div class="coffre-liens">
+        <button type="button" class="lien" id="b-ouvrir">Ouvrir un coffre</button>
+        <button type="button" class="lien" id="b-nouveau">Nouveau</button>
+      </div>
+    </div>
+
+    <p class="hors-ligne"><span class="point" aria-hidden="true"></span>Hors ligne : aucune connexion n'est possible.</p>
+    <p class="version" id="version"></p>
+  </aside>
+
+  <main>
+    <!-- Opérations -->
+    <section class="vue" id="v-operations">
+      <header class="tete">
+        <h1>Opérations</h1>
+        <div class="actions">
+          <button type="button" id="b-nouvelle" title="Raccourci : N">+ Ajouter</button>
+          <button type="button" class="doux" id="b-import">Importer…</button>
+          <div class="menu">
+            <button type="button" class="ghost" id="b-plus" aria-haspopup="true" aria-expanded="false">Plus</button>
+            <div class="menu-liste" id="menu-ops" role="menu" hidden>
+              <button type="button" role="menuitem" id="b-membre">Ajouter un membre du foyer</button>
+              <button type="button" role="menuitem" id="b-export-ops">Exporter en CSV…</button>
+              <button type="button" role="menuitem" id="b-exemple">Charger un exemple</button>
+            </div>
+          </div>
+        </div>
+      </header>
+      <div class="membres" id="membres" role="tablist" aria-label="Membres du foyer" hidden></div>
+      <div class="bilan" id="bilan"></div>
+      <div class="afaire" id="afaire" hidden></div>
+      <details class="averifier" id="averifier" hidden>
+        <summary id="averifier-titre"></summary>
+        <p class="fine">Des lignes de vos imports que Taiseux n'a pas voulu deviner. Saisissez-les vous-même, ou
+          écartez celles qui n'ont pas d'effet fiscal.</p>
+        <div id="averifier-liste"></div>
+      </details>
+      <div class="filtres" id="filtres" hidden>
+        <input type="search" id="f-texte-ops" placeholder="Chercher : crypto, plateforme, note…" aria-label="Chercher dans les opérations">
+        <select id="f-annee" aria-label="Année"></select>
+        <select id="f-type" aria-label="Type d'opération"></select>
+        <span class="fine" id="f-compte" aria-live="polite"></span>
+        <button type="button" class="lien" id="f-effacer" hidden>Tout afficher</button>
+      </div>
+      <div class="table-scroll" id="table-ops-zone">
+        <table class="ops" aria-label="Opérations">
+          <thead><tr>
+            <th>Date</th><th>Type</th><th>Crypto</th><th class="n">Montant</th><th>Plateforme</th><th class="n">Plus-value</th>
+            <th><span class="sr">Supprimer</span></th>
+          </tr></thead>
+          <tbody id="lignes"></tbody>
+        </table>
+      </div>
+      <div class="pager" id="pager"></div>
+      <p class="fine" id="vide-filtre" hidden>Aucune opération ne correspond à ces critères.</p>
+      <div class="depart" id="vide">
+        <h2>Par où commencer ?</h2>
+        <div class="depart-cartes">
+          <button type="button" class="depart-carte" id="d-import">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19.5h14"/></svg>
+            <strong>Importer vos exports</strong>
+            <span>L'historique en CSV de vos plateformes et portefeuilles. Glissez les fichiers ici, ou choisissez-les.</span>
+          </button>
+          <button type="button" class="depart-carte" id="d-saisie">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19l1-4L16.5 4.5l3 3L9 18z"/><path d="M14.5 6.5l3 3"/></svg>
+            <strong>Saisir à la main</strong>
+            <span>Une fiche par opération, qui ne demande que l'utile.</span>
+          </button>
+          <button type="button" class="depart-carte" id="d-exemple">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></svg>
+            <strong>Voir un exemple</strong>
+            <span>Quatre opérations en bitcoin, pour voir le résultat avant de saisir les vôtres.</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Déclaration -->
+    <section class="vue" id="v-declaration" hidden>
+      <header class="tete">
+        <div>
+          <h1>Déclaration</h1>
+          <p class="sous">Ce que vous recopiez sur impots.gouv.fr. Taiseux ne transmet rien.</p>
+        </div>
+        <div class="choix">
+          <label class="annee-choix" id="membre-choix-zone">Membre du foyer
+            <select id="membre-decl"></select>
+          </label>
+          <label class="annee-choix">Cessions de l'année
+            <select id="annee"></select>
+          </label>
+        </div>
+      </header>
+      <div id="decl-vide" class="vide" hidden><h2>Rien à déclarer pour l'instant</h2><p>Le formulaire se prépare dès votre première vente.</p></div>
+      <div id="decl">
+        <div id="decl-alerte" hidden></div>
+        <div class="cartes" id="cartes"></div>
+        <div id="decl-comptes" hidden></div>
+        <div class="titre-section">
+          <h2>Formulaire 2086, ligne par ligne</h2>
+          <div class="actions">
+            <button type="button" class="ghost petit" id="b-fiche">Fiche imprimable…</button>
+            <button type="button" class="ghost petit" id="b-export-2086">Détail en CSV…</button>
+          </div>
+        </div>
+        <div id="formulaire"></div>
+        <p class="fine" id="decl-notes"></p>
+        <div class="soutien">
+          <p><strong>Taiseux vous a servi ?</strong> Il est gratuit, sans publicité ni revente de données : une contribution
+            finance sa mise à jour à chaque loi de finances.</p>
+          <button type="button" class="doux petit" id="b-soutien">Copier l'adresse pour contribuer</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Comptes à l'étranger -->
+    <section class="vue" id="v-comptes" hidden>
+      <header class="tete">
+        <div>
+          <h1>Comptes à l'étranger</h1>
+          <p class="sous">Un compte sur une plateforme établie hors de France se déclare chaque année,
+            <strong>même sans vente</strong> (formulaire 3916-bis). Taiseux prépare la liste.</p>
+        </div>
+      </header>
+      <details class="repli">
+        <summary>Que faut-il déclarer, et où ?</summary>
+        <div class="cartes deux">
+          <div class="carte">
+            <p class="t">Ce qui se déclare</p>
+            <p>Les comptes ouverts, détenus, utilisés ou clos dans l'année auprès d'une plateforme établie à l'étranger,
+              même utilisés une seule fois.</p>
+            <p>Pas les portefeuilles personnels dont vous détenez les clés (Ledger, Trezor, Electrum, Sparrow…), ni les
+              plateformes établies en France.</p>
+          </div>
+          <div class="carte">
+            <p class="t">Sur la déclaration de revenus</p>
+            <p>Cochez la case <span class="case">8UU</span> (comptes à l'étranger, actifs numériques compris) et joignez un
+              3916-bis par compte.</p>
+            <p>Un compte oublié coûte 750 € d'amende, 1 500 € si sa valeur dépasse 50 000 €.</p>
+          </div>
+        </div>
+      </details>
+      <h2 class="espace">Plateformes vues dans vos opérations</h2>
+      <div id="plateformes-vues"></div>
+      <div class="titre-section">
+        <h2>Comptes à déclarer</h2>
+        <div class="actions">
+          <button type="button" class="doux petit" id="b-compte">+ Compte</button>
+          <button type="button" class="ghost petit" id="b-fiche-comptes">Liste imprimable…</button>
+        </div>
+      </div>
+      <div id="comptes"></div>
+      <p class="fine" id="comptes-aide" hidden>L'organisme et son adresse figurent dans les conditions d'utilisation de la
+        plateforme : l'entité peut changer selon le pays, vérifiez celle qui tient votre compte.</p>
+    </section>
+
+    <!-- Cours -->
+    <section class="vue" id="v-cours" hidden>
+      <header class="tete">
+        <div>
+          <h1>Cours</h1>
+          <p class="sous">Le prix en euros de vos cryptos, les jours où vous vendez. Taiseux ne télécharge rien :
+            vous les importez ou les saisissez.</p>
+        </div>
+        <div class="actions">
+          <button type="button" class="doux" id="b-import-cours">Importer un fichier de cours…</button>
+        </div>
+      </header>
+      <div id="messages-cours"></div>
+      <p class="msg ok" id="cours-ok" hidden>Tous les cours nécessaires au calcul sont là.</p>
+      <div id="manquants-zone">
+        <h2>Cours manquants</h2>
+        <p class="fine" id="manquants-texte"></p>
+        <div class="table-scroll"><table class="cours" aria-label="Cours manquants">
+          <thead><tr><th>Crypto</th><th>Date</th><th class="n">Prix d'une unité, en euros</th><th></th></tr></thead>
+          <tbody id="manquants"></tbody>
+        </table></div>
+      </div>
+      <div id="cours-guide" hidden>
+        <h2 class="espace">Obtenir ces cours, crypto par crypto</h2>
+        <ol class="pas">
+          <li>Copiez le lien d'une crypto et ouvrez-le dans votre navigateur.</li>
+          <li>Onglet « Données historiques », devise EUR, puis « Exporter » : vous obtenez un fichier CSV.</li>
+          <li>Revenez ici et cliquez sur « Importer un fichier de cours ».</li>
+        </ol>
+        <div id="cours-guide-liste"></div>
+        <p class="fine">En ouvrant un lien, CoinGecko voit que vous consultez cette crypto (ni vos montants, ni vos dates).
+          Taiseux, lui, ne se connecte à rien. D'autres sources existent, voir plus bas.</p>
+      </div>
+      <h2 class="espace">Cours enregistrés</h2>
+      <div id="cours-resume"></div>
+      <details class="repli">
+        <summary>Où trouver un fichier de cours ?</summary>
+        <ul>
+          <li><strong>CoinGecko</strong> : page de la crypto, onglet « Données historiques », devise EUR, « Exporter » :
+            un fichier par crypto (par exemple <code>btc-eur-max.csv</code>). Simple ; en contrepartie, CoinGecko voit
+            quelles cryptos vous consultez (ni vos montants, ni vos dates).</li>
+          <li><strong>Kraken</strong> publie une archive de tous ses cours, identique pour tout le monde (rien n'est
+            révélé), mais très lourde. Dans l'archive, prenez le fichier quotidien de la paire en euros
+            (<code>XBTEUR_1440.csv</code> pour le bitcoin) : Taiseux retient le cours de clôture du jour.</li>
+          <li><strong>Votre propre fichier</strong> : trois colonnes <code>date;actif;prix</code>
+            (par exemple <code>2026-03-10;BTC;81234,50</code>).</li>
+        </ul>
+        <p class="fine">Taiseux retient un cours par jour. La loi vise la valeur au moment de la cession : pour une
+          journée très agitée, vous pouvez saisir la valeur globale exacte sur la vente elle-même, elle prime.</p>
+      </details>
+    </section>
+
+    <!-- Aide -->
+    <section class="vue" id="v-aide" hidden>
+      <header class="tete"><h1>Aide</h1></header>
+      <div class="aide">
+        <details class="sujet" open>
+          <summary>Comment la plus-value est calculée</summary>
+          <p>À chaque vente, la plus-value est égale au prix de cession, moins les frais, moins la part du prix
+            d'acquisition de tout le portefeuille qui correspond à cette vente :</p>
+          <p class="formule">prix de cession − frais − prix total d'acquisition net × prix de cession ÷ valeur globale du portefeuille</p>
+          <p>C'est la formule de l'article 150 VH bis du code général des impôts. Elle est contrôlée sur les exemples
+            chiffrés de la doctrine (BOFiP, BOI-RPPM-PVBMC-30) et sur 3 012 cessions recalculées par un programme
+            indépendant.</p>
+        </details>
+        <details class="sujet">
+          <summary>Valeur globale du portefeuille</summary>
+          <p>C'est la valeur de toutes vos cryptos, toutes plateformes et portefeuilles confondus, juste avant la vente.
+            Si vos opérations indiquent la crypto et la quantité, Taiseux la calcule à partir des cours ; une valeur
+            saisie à la main prime.</p>
+        </details>
+        <details class="sujet">
+          <summary>Échanges, soultes et stablecoins</summary>
+          <p>Échanger une crypto contre une autre n'est pas imposable (sursis) : saisissez-le quand même, en choisissant
+            « Échange », pour que vos quantités restent justes.</p>
+          <p><strong>Soulte</strong> est le terme officiel du formulaire pour la somme d'argent qui complète un échange.
+            Si vous échangez du bitcoin contre de l'ether <em>et</em> 150 € versés en euros, ces 150 € sont une soulte
+            reçue : indiquez-la dans « Plus de détails » de la fiche (signe moins si c'est vous qui la versez).
+            L'échange devient alors une cession imposable.</p>
+          <p>En 2025 et 2026, échanger une crypto contre une autre, stablecoins compris, n'est pas imposable. Le
+            16 octobre 2026, l'Assemblée nationale a voté en première lecture un amendement au budget 2027 qui rendrait
+            imposable la conversion en stablecoins à partir du 1er janvier 2027. Ce n'est pas définitif ; si la loi le
+            confirme, Taiseux sera mis à jour pour les cessions de 2027.</p>
+        </details>
+        <details class="sujet">
+          <summary>Crypto reçue sans rien payer</summary>
+          <p>Une crypto reçue gratuitement (airdrop, récompense) entre dans votre portefeuille avec un prix
+            d'acquisition de 0 €, sauf si vous en indiquez un autre. Les récompenses de staking sont comptées ainsi,
+            un traitement que la doctrine discute.</p>
+        </details>
+        <details class="sujet">
+          <summary>Seuil de 305 €, moins-values, foyer</summary>
+          <p><strong>Seuil :</strong> si le total des prix de cession de l'année, nets de frais, ne dépasse pas 305 € pour
+            le foyer, les plus-values sont exonérées. Le formulaire 2086 se joint quand même.</p>
+          <p><strong>Moins-value :</strong> elle se compense avec les plus-values de la même année, mais ne se reporte pas.</p>
+          <p><strong>Foyer :</strong> chaque membre (déclarant 1, déclarant 2, personne à charge) a son propre
+            portefeuille et ses lignes du formulaire (224, 264, 324) ; le seuil de 305 € et les lignes 51 et 52 portent
+            sur tout le foyer. Ajoutez un membre depuis le menu « Plus » des opérations.</p>
+        </details>
+        <details class="sujet">
+          <summary>Ce que Taiseux protège, et ce qu'il ne protège pas</summary>
+          <ul>
+            <li><strong>Aucune connexion.</strong> L'application ne peut joindre aucun serveur : c'est interdit par sa
+              configuration. Coupez le réseau : tout fonctionne pareil.</li>
+            <li><strong>Sans trace.</strong> Tant que vous n'enregistrez pas, rien n'est écrit sur le disque : fermez la
+              fenêtre et tout disparaît.</li>
+            <li><strong>Coffre chiffré.</strong> Un seul fichier, chiffré par votre phrase de passe (Argon2id,
+              XChaCha20-Poly1305). Sans elle, personne ne peut le lire, pas même nous : <strong>une phrase oubliée ne se
+              récupère pas.</strong></li>
+            <li><strong>Rien n'est envoyé au fisc par Taiseux.</strong> Vous recopiez vous-même les montants.</li>
+          </ul>
+          <p>Ne sont pas protégés : les exports CSV et les fiches imprimables, qui sont en clair (rangez-les ou
+            supprimez-les) ; ce que les plateformes transmettent à l'administration (DAC8) ; un ordinateur déjà
+            compromis.</p>
+        </details>
+        <details class="sujet">
+          <summary>Imports : plateformes et portefeuilles reconnus</summary>
+          <p>Taiseux lit les exports ci-dessous, en <strong>bêta</strong> : les formats viennent de la documentation des
+            plateformes, aucun n'a encore été validé sur un vrai fichier. Vérifiez toujours l'aperçu. Une ligne que
+            Taiseux ne sait pas traduire n'est jamais devinée : elle est mise de côté, « à vérifier ».</p>
+          <ul class="plateformes" id="liste-plateformes"></ul>
+        </details>
+        <details class="sujet">
+          <summary>Limites et responsabilité</summary>
+          <p>Taiseux applique la formule légale aux chiffres que vous saisissez et montre chaque étape. Ce n'est pas un
+            conseil fiscal : vous restez responsable de votre déclaration. Les régimes professionnels, le minage, les
+            contrats à terme, la marge et la DeFi ne sont pas traités.</p>
+        </details>
+        <details class="sujet">
+          <summary>À propos</summary>
+          <p>Taiseux est gratuit et open source (licence MIT) : son code est public, chacun peut le lire, le vérifier
+            et le compiler (<code>github.com/gill3s/taiseux</code>). Les fichiers officiels sont compilés, vérifiés
+            (SHA-256) et horodatés (OpenTimestamps).</p>
+          <p>Si Taiseux vous est utile, vous pouvez soutenir son suivi de la loi par une contribution sur
+            <code>taiseux.toolguild.online</code>. Un don ne donne accès à rien de plus : tout est déjà là.</p>
+        </details>
+      </div>
+    </section>
+  </main>
+</div>
+
+<dialog id="dlg-phrase">
+  <form method="dialog" id="f-phrase">
+    <h2 id="phrase-titre">Phrase de passe</h2>
+    <p id="phrase-texte" class="fine"></p>
+    <label>Phrase de passe <input type="text" class="secret" id="phrase" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+    <p class="fine jauge" id="phrase-jauge" aria-live="polite"></p>
+    <label id="phrase2-zone">Confirmez-la <input type="text" class="secret" id="phrase2" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+    <label class="coche"><input type="checkbox" id="phrase-voir"> Afficher la phrase</label>
+    <p id="phrase-erreur" class="erreur" aria-live="polite"></p>
+    <div class="dlg-actions">
+      <button type="button" class="ghost" id="phrase-annuler">Annuler</button>
+      <button type="submit" id="phrase-ok">Valider</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlg-import" class="large">
+  <form method="dialog" id="f-import">
+    <h2 id="import-titre">Import</h2>
+    <div class="table-scroll"><table class="fichiers" aria-label="Fichiers analysés"><thead><tr>
+      <th>Fichier</th><th>Reconnu comme</th><th class="n">Opérations</th><th class="n">À vérifier</th><th class="n">Ignorées</th>
+    </tr></thead><tbody id="import-fichiers"></tbody></table></div>
+    <div id="import-detail">
+      <p class="resume" id="import-resume"></p>
+      <div class="table-scroll apercu"><table aria-label="Aperçu"><thead><tr>
+        <th>Date</th><th>Type</th><th>Crypto</th><th class="n">Quantité</th><th class="n">Montant (€)</th><th>Reçu</th>
+      </tr></thead><tbody id="import-ops"></tbody></table></div>
+      <div id="import-averifier"></div>
+    </div>
+    <p class="msg warn" id="import-beta">Import en bêta : ce format vient de la documentation de la plateforme et n'a pas
+      encore été validé sur un vrai fichier. Parcourez l'aperçu avant d'ajouter.</p>
+    <label class="ligne-choix">Ajouter à <select id="import-membre"></select></label>
+    <div class="dlg-actions">
+      <button type="button" class="ghost" id="import-annuler">Annuler</button>
+      <button type="submit" id="import-ok">Ajouter</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlg-op" class="large">
+  <form method="dialog" id="f-op" novalidate>
+    <h2 id="op-titre">Nouvelle opération</h2>
+    <div class="types" id="op-types" role="radiogroup" aria-label="Type d'opération"></div>
+    <div class="fiche-corps">
+      <div>
+        <div class="grille" id="op-champs"></div>
+        <details id="op-avance-zone"><summary>Plus de détails</summary><div class="grille" id="op-avance"></div></details>
+        <p id="op-erreur" class="erreur" aria-live="polite"></p>
+      </div>
+      <aside class="conseil">
+        <p class="conseil-t">En clair</p>
+        <p class="phrase" id="op-phrase" aria-live="polite"></p>
+        <p class="conseil-t" id="op-conseil-t"></p>
+        <p id="op-aide" aria-live="polite"></p>
+      </aside>
+    </div>
+    <div class="dlg-actions">
+      <button type="button" class="ghost danger" id="op-supprimer" hidden>Supprimer</button>
+      <button type="button" class="ghost" id="op-dupliquer" hidden>Dupliquer</button>
+      <span class="pousse"></span>
+      <button type="button" class="ghost" id="op-annuler">Fermer</button>
+      <button type="button" class="doux" id="op-autre" title="Raccourci : Maj + Entrée">Ajouter et saisir la suivante</button>
+      <button type="submit" id="op-ok">Ajouter</button>
+    </div>
+  </form>
+</dialog>
+
+<datalist id="dl-actifs"></datalist>
+<datalist id="dl-plateformes"></datalist>
+<div class="toast" id="toast" hidden role="status"><span id="toast-texte"></span><button type="button" class="lien" id="toast-annuler">Annuler</button></div>
+<div class="depot" id="depot" hidden><div>Déposez vos fichiers d'export pour les importer</div></div>
+
+<dialog id="dlg-texte">
+  <form method="dialog" id="f-texte">
+    <h2 id="texte-titre"></h2>
+    <p id="texte-aide" class="fine"></p>
+    <label><span id="texte-libelle"></span><input type="text" id="texte-valeur" autocomplete="off" spellcheck="false"></label>
+    <div class="dlg-actions">
+      <button type="button" class="ghost" id="texte-annuler">Annuler</button>
+      <button type="submit">Valider</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="app.js"></script>
+</body>
+</html>
