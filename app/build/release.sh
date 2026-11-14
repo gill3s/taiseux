@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Rassemble les paquets de Taiseux dans dist/<version>/, calcule SHA256SUMS et horodate (OpenTimestamps).
 #
-#   build/release.sh            (après : tests, cargo tauri build sur le Mac, build/linux.sh, build/windows.sh)
+#   build/release.sh            (après : tests, build/macos.sh sur le Mac, build/linux.sh, build/windows.sh)
 #
 # Ne prend que ce qui existe ; dit ce qui manque. Les archives (.zip / .tar.gz) sont ce que ToolGuild livre par curl.
 set -euo pipefail
@@ -32,7 +32,8 @@ for arch in arm64 amd64; do
     tmp=$(mktemp -d); n="taiseux-$V-linux-$arch"; mkdir "$tmp/$n"
     cp "$d"/*.AppImage "$tmp/$n/Taiseux.AppImage"; cp "$d"/*.deb "$tmp/$n/"; chmod +x "$tmp/$n/Taiseux.AppImage"
     cp build/LISEZMOI.txt ../LICENSE "$tmp/$n/"
-    tar -C "$tmp" -czf "$OUT/$n.tar.gz" "$n"; rm -rf "$tmp"
+    # Sans le nom du compte qui compile (propriétaire des fichiers) ni fichiers « ._ » de macOS.
+    COPYFILE_DISABLE=1 tar -C "$tmp" --uid 0 --gid 0 --uname root --gname root -czf "$OUT/$n.tar.gz" "$n"; rm -rf "$tmp"
   else manque+=("linux-$arch"); fi
 done
 
